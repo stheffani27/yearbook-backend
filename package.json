@@ -20,5 +20,8 @@
   "homepage": "https://github.com/stheffani27/yearbook-backend#readme",
   "dependencies": {
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
   }
 }
