@@ -1,10 +1,7 @@
-// Generator — gera o Prisma Client em JavaScript
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
-// Datasource — conexão com o banco PostgreSQL no Neon
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
