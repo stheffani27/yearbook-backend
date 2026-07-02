@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enum — valores fixos para o campo role
-enum Role {
-  USER
-  ADMIN
-}
-
-// Model Aluno — representa a tabela "Aluno" no banco
 model Aluno {
   id            Int        @id @default(autoincrement())
   nome          String
@@ -25,16 +18,19 @@ model Aluno {
   fotoUrl       String?
   role          Role       @default(USER)
   criadoEm      DateTime   @default(now())
-
   mensagens     Mensagem[]
 }
 
-// Model Mensagem — mensagens enviadas pelos alunos
 model Mensagem {
   id        Int      @id @default(autoincrement())
   texto     String
   imagemUrl String?
   autorId   Int
-  autor     Aluno    @relation(fields: [autorId], references: [id])
   criadoEm  DateTime @default(now())
+  autor     Aluno    @relation(fields: [autorId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
 }

@@ -40,33 +40,35 @@ export async function buscarAluno(req, res) {
 }
 
 // POST /alunos — cria um novo aluno
+// 🎯 POST /alunos — cria um novo aluno
+// Dica: use prisma.aluno.create({ data: { ... }, select: selectSemSenha })
+// Dica: os dados do aluno vêm de req.body (nome, email, senhaHash, cidade, frase, planosFuturos)
+// Dica: retorne status 201 com o aluno criado
 export async function criarAluno(req, res) {
-  const {
-    nome,
-    email,
-    senhaHash,
-    cidade,
-    frase,
-    planosFuturos,
-    fotoUrl,
-    role,
-  } = req.body;
+  try {
+    // 1. Extraia os campos de req.body: nome, email, senhaHash, cidade, frase, planosFuturos
+    const { nome, email, senhaHash, cidade, frase, planosFuturos } = req.body;
 
-  const alunoCriado = await prisma.aluno.create({
-    data: {
-      nome,
-      email,
-      senhaHash,
-      cidade,
-      frase,
-      planosFuturos,
-      fotoUrl,
-      role,
-    },
-    select: selectSemSenha,
-  });
+    // 2. Use prisma.aluno.create() com data e select: selectSemSenha
+    const alunoCriado = await prisma.aluno.create({
+      data: {
+        nome,
+        email,
+        senhaHash,
+        cidade,
+        frase,
+        planosFuturos
+      },
+      select: selectSemSenha // Garante que a senha criptografada não volte na resposta HTTP
+    });
 
-  return res.status(201).json(alunoCriado);
+    // 3. Retorne res.status(201).json(alunoCriado)
+    return res.status(201).json(alunoCriado);
+
+  } catch (error) {
+    console.error("Erro ao criar aluno:", error);
+    return res.status(500).json({ erro: "Não foi possível criar o aluno." });
+  }
 }
 
 // PUT /alunos/:id — atualiza um aluno existente
