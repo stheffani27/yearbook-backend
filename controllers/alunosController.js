@@ -15,41 +15,56 @@ const selectSemSenha = {
 };
 
 // GET /alunos — lista todos os alunos
-export async function listarAlunos(req, res) {
-  const alunos = await prisma.aluno.findMany({
-    select: selectSemSenha,
-  });
+export async function listarAlunos(req, res, next) {
+  try {
+    const alunos = await prisma.aluno.findMany({
+      select: selectSemSenha,
+    });
 
-  res.json(alunos);
+    res.json(alunos);
+  } catch (erro) {
+    next(erro); // Envia o erro inesperado para o middleware global
+  }
 }
 
 // GET /alunos/:id — busca um aluno pelo ID
-export async function buscarAluno(req, res) {
-  const { id } = req.params;
+export async function buscarAluno(req, res, next) {
+  try {
+    const { id } = req.params;
+    const idNumerico = Number(id);
 
-  const aluno = await prisma.aluno.findUnique({
-    where: { id: Number(id) },
-    select: selectSemSenha,
-  });
+    // Se o ID não for um número válido
+    if (isNaN(idNumerico)) {
+      return res.status(404).json({ erro: 'Aluno não encontrado' });
+    }
 
-  if (!aluno) {
-    return res.status(404).json({ erro: 'Aluno não encontrado' });
+    let aluno = null;
+
+    try {
+      aluno = await prisma.aluno.findUnique({
+        where: { id: idNumerico },
+        select: selectSemSenha,
+      });
+    } catch (dbError) {
+      // Se houver falha na busca por conta do ID, responde 404 em vez de cair no erro 500
+      return res.status(404).json({ erro: 'Aluno não encontrado' });
+    }
+
+    if (!aluno) {
+      return res.status(404).json({ erro: 'Aluno não encontrado' });
+    }
+
+    return res.json(aluno);
+  } catch (erro) {
+    next(erro); // Envia qualquer outro erro para o middleware global
   }
-
-  res.json(aluno);
 }
 
 // POST /alunos — cria um novo aluno
-// 🎯 POST /alunos — cria um novo aluno
-// Dica: use prisma.aluno.create({ data: { ... }, select: selectSemSenha })
-// Dica: os dados do aluno vêm de req.body (nome, email, senhaHash, cidade, frase, planosFuturos)
-// Dica: retorne status 201 com o aluno criado
-export async function criarAluno(req, res) {
+export async function criarAluno(req, res, next) {
   try {
-    // 1. Extraia os campos de req.body: nome, email, senhaHash, cidade, frase, planosFuturos
     const { nome, email, senhaHash, cidade, frase, planosFuturos } = req.body;
 
-    // 2. Use prisma.aluno.create() com data e select: selectSemSenha
     const alunoCriado = await prisma.aluno.create({
       data: {
         nome,
@@ -57,22 +72,19 @@ export async function criarAluno(req, res) {
         senhaHash,
         cidade,
         frase,
-        planosFuturos
+        planosFuturos,
       },
-      select: selectSemSenha // Garante que a senha criptografada não volte na resposta HTTP
+      select: selectSemSenha,
     });
 
-    // 3. Retorne res.status(201).json(alunoCriado)
     return res.status(201).json(alunoCriado);
-
-  } catch (error) {
-    console.error("Erro ao criar aluno:", error);
-    return res.status(500).json({ erro: "Não foi possível criar o aluno." });
+  } catch (erro) {
+    next(erro); // Envia o erro inesperado para o middleware global
   }
 }
 
 // PUT /alunos/:id — atualiza um aluno existente
-export async function atualizarAluno(req, res) {
+export async function atualizarAluno(req, res, next) {
   const { id } = req.params;
   const dados = req.body;
 
@@ -94,7 +106,7 @@ export async function atualizarAluno(req, res) {
 }
 
 // DELETE /alunos/:id — deleta um aluno
-export async function deletarAluno(req, res) {
+export async function deletarAluno(req, res, next) {
   const { id } = req.params;
 
   try {
